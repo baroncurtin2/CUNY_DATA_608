@@ -59,7 +59,11 @@ app.layout = html.Div(children=[
                                  y=initial_data['trees'])
                       ]
                   ))
-    ], style={'columnCount': 2, 'width': '90%'})
+    ], style={'columnCount': 2, 'width': '90%'}),
+
+    html.Div(children=[
+        dcc.Graph(id='box-graph')
+    ])
 ])
 
 
