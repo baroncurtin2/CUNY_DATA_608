@@ -1,5 +1,5 @@
-from .opendata import get_data
+from .opendata import OpenData
 
 __all__ = [
-    'get_data'
+    'OpenData'
 ]

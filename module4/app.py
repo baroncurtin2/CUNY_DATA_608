@@ -6,6 +6,7 @@ from nyc_opendata import OpenData
 
 # data source
 nyc = OpenData()
+data = nyc.data
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -18,20 +19,20 @@ app.layout = html.Div(children=[
 
     html.Div(children=[
         html.Label('Borough'),
-        dcc.Dropdown(options=nyc['borough'],
-            value=nyc['borough'][0]),
+        dcc.Dropdown(options=data['borough'],
+                     value=data['borough'][0]),
 
         html.Label('Health'),
-        dcc.Dropdown(options=nyc['health'],
-                     value=nyc['health'][0]),
+        dcc.Dropdown(options=data['health'],
+                     value=data['health'][0]),
 
         html.Label('Species'),
-        dcc.Dropdown(options=nyc['species'],
-                     value=nyc['species'][0]),
+        dcc.Dropdown(options=data['species'],
+                     value=data['species'][0]),
 
         html.Label('Steward'),
-        dcc.Dropdown(options=nyc['steward'],
-                     value=nyc['steward'][0]),
+        dcc.Dropdown(options=data['steward'],
+                     value=data['steward'][0]),
     ], style={'columnCount': 2})
 ])
 
