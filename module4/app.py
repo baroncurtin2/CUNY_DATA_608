@@ -62,7 +62,15 @@ app.layout = html.Div(children=[
     ], style={'columnCount': 2, 'width': '90%'}),
 
     html.Div(children=[
-        dcc.Graph(id='box-graph')
+        dcc.Graph(id='box-graph',
+                  figure=go.Figure(
+                      data=[{'x': data[data['steward'] == steward]['trees'],
+                             'y': data[data['steward'] == steward]['health'],
+                             'name': steward,
+                             'type': 'box',
+                             'orientation': 'h'}
+                            for steward in data['steward'].unique()]
+                  ))
     ])
 ])
 
