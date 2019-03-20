@@ -18,9 +18,15 @@ lists = nyc.unique_lists
 boros = lists['borough']
 species = lists['species']
 
-initial_data = data.pivot_table(values='trees', index=['borough', 'species', 'health'], aggfunc=np.sum)
-initial_data = initial_data.reset_index().set_index(['borough', 'species']).loc[(
-    boros[0]['value'], species[0]['value'])]
+# get initial set of data
+pie_data = data.copy()
+pie_data = pie_data[(pie_data['borough'] == boros[0]['value']) & (pie_data['species'] == species[0]['value'])]
+
+# create dataset for percents
+bar_data = data.copy()
+bar_data = bar_data.groupby(['borough', 'species', 'steward', 'health']).sum()
+bar_data = bar_data.groupby(level=[0, 1, 2]).apply(lambda x: x / x.sum()).reset_index()
+bar_data = bar_data[(bar_data['borough'] == boros[0]['value']) & (bar_data['species'] == species[0]['value'])]
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -48,30 +54,32 @@ app.layout = html.Div(children=[
         dcc.Graph(id='pie-graph',
                   figure=go.Figure(
                       data=[
-                          go.Pie(labels=initial_data['health'],
-                                 values=initial_data['trees'])
-                      ]
+                          go.Pie(labels=pie_data['health'],
+                                 values=pie_data['trees'])
+                      ],
+                      layout=go.Layout(
+                          title='Tree Health by %'
+                      )
                   )),
         dcc.Graph(id='bar-graph',
                   figure=go.Figure(
-                      data=[
-                          go.Bar(x=initial_data['health'],
-                                 y=initial_data['trees'])
-                      ]
+                      data=[go.Bar(
+                          x=bar_data[(bar_data['health'] == health) & (bar_data['steward'] == steward)]['steward'],
+                          y=round(bar_data[(bar_data['health'] == health) & (bar_data['steward'] == steward)]['trees'],
+                                  2),
+                          name=health,
+                          text=round(bar_data[(bar_data['health'] == health) & (bar_data['steward'] == steward)][
+                                         'trees'], 2),
+                          textposition='auto'
+                      )
+                          for steward in bar_data['steward'].unique()
+                          for health in bar_data['health'].unique()],
+                      layout=go.Layout(
+                          barmode='group',
+                          title='Health Impact by Steward'
+                      )
                   ))
-    ], style={'columnCount': 2, 'width': '90%'}),
-
-    html.Div(children=[
-        dcc.Graph(id='box-graph',
-                  figure=go.Figure(
-                      data=[{'x': data[data['steward'] == steward]['trees'],
-                             'y': data[data['steward'] == steward]['health'],
-                             'name': steward,
-                             'type': 'box',
-                             'orientation': 'h'}
-                            for steward in data['steward'].unique()]
-                  ))
-    ])
+    ], style={'columnCount': 2, 'width': '90%'})
 ])
 
 
@@ -82,24 +90,36 @@ app.layout = html.Div(children=[
      Input('spc-filter', 'value')]
 )
 def update_graph(boro, spc):
-    table = data.pivot_table(values='trees', index=['borough', 'species', 'health'], aggfunc=np.sum)
-    print(spc)
+    # pie chart
+    pie = data.copy()
+    bar = data.copy()
 
-    # reset and set index to borough for easier filtering
-    table = table.reset_index().set_index(['borough', 'species'])
+    # filter bar and bar datasets for boro and spc
+    pie = pie[(pie['borough'] == boro) & (pie['species'] == spc)]
+    bar = bar.groupby(['borough', 'species', 'steward', 'health']).sum()
+    bar = bar.groupby(level=[0, 1, 2]).apply(lambda x: x / x.sum()).reset_index()
+    bar = bar[(bar['borough'] == boro) & (bar['species'] == spc)]
 
-    # filter data for bor
-    table = table.loc[(boro, spc)]
-    labels = table['health']
-    values = table['trees']
+    # get pie and bar labels/values for easy referencing
+    pie_labels = pie['health']
+    pie_values = pie['trees']
 
     # pie graph items
-    pie_trace = go.Pie(labels=labels, values=values)
-    pie_fig = go.Figure(data=[pie_trace])
+    pie_trace = go.Pie(labels=pie_labels, values=pie_values)
+    pie_fig = go.Figure(data=[pie_trace], layout=go.Layout(title='Tree Health by %'))
 
     # bar graph items
-    bar_trace = go.Bar(x=labels, y=values)
-    bar_fig = go.Figure(data=[bar_trace])
+    bar_trace = [go.Bar(
+        x=bar[(bar['health'] == health) & (bar['steward'] == steward)]['steward'],
+        y=round(bar[(bar['health'] == health) & (bar['steward'] == steward)]['trees'], 2),
+        name=health,
+        text=round(bar[(bar['health'] == health) & (bar['steward'] == steward)]['trees'], 2),
+        textposition='auto'
+    )
+        for steward in bar['steward'].unique()
+        for health in bar['health'].unique()]
+    bar_layout = go.Layout(barmode='group', title='Health Impact by Steward')
+    bar_fig = go.Figure(data=bar_trace, layout=bar_layout)
 
     return pie_fig, bar_fig
 
