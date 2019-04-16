@@ -1,0 +1,60 @@
+<html>
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+        <style type="text/css">
+            .row {
+                display: flex;
+                }
+
+            .column {
+                flex: 50%;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="app">
+            <div>
+                <h2>Message Reverser</h2>
+                <div class="row">
+                    <input v-model="message" class="column">
+                    <p class="column">My message reversed: {{ reverseMessage }}</p>
+                </div>
+            </div>
+            <div>
+                <h2>Table Generator</h2>
+                <div class="row">
+                    <div class="column">
+                        <p>Enter an number below:</p>
+                        <input v-model="myNumber">
+                    </div>
+                    
+                    <table class="column">
+                        <tr v-for="multi in genMultiples()"><td>{{ multi }}</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+            let app = new Vue({
+                el: '#app',
+                data: {
+                    message: 'Hello World!',
+                    myNumber: 1,
+                    multiples: Array(20)
+                },
+                methods: {
+                    genMultiples() {
+                        return Array(20).fill().map((item, index) => this.myNumber * (index + 1))
+                    }
+                },
+                computed: {
+                    reverseMessage() {
+                        return this.message.split('').reverse().join('')
+                    }
+                }
+            });
+        </script>
+    </body>
+</html>
